@@ -58,4 +58,64 @@ def analyze():
     intent = detect_intent(text)
     return jsonify(intent)
 
+div_map = {
+    "tm": "TM & CAM",
+    "tm&cam": "TM & CAM",
+    "bm": "BM & AHP",
+    "ahp": "BM & AHP",
+    "em": "EM",
+    "c&i": "C&I"
+}
+
+for k, v in div_map.items():
+    if k in t:
+        filters["division"] = v
+
+if "pending" in t:
+    filters["status"] = "Pending"
+
+if "completed" in t or "closed" in t:
+    filters["status"] = "Completed"
+
+import re
+
+amt_match = re.search(r"(above|over|greater than)\s+(\d+)", t)
+if amt_match:
+    filters["amount_op"] = ">"
+    filters["amount"] = int(amt_match.group(2)) * 100000  # lakh
+
+amt_match2 = re.search(r"(below|less than)\s+(\d+)", t)
+if amt_match2:
+    filters["amount_op"] = "<"
+    filters["amount"] = int(amt_match2.group(2)) * 100000
+from datetime import datetime, timedelta
+
+if "today" in t:
+    filters["date"] = "today"
+
+if "yesterday" in t:
+    filters["date"] = "yesterday"
+
+if "last week" in t:
+    filters["date"] = "last_week"
+
+if "last month" in t:
+    filters["date"] = "last_month"
+    
+if "how many" in t or "count" in t:
+    return { "type": "SUMMARY", "target": "count", "filters": filters }
+
+if "total amount" in t or "sum" in t:
+    return { "type": "SUMMARY", "target": "sum", "filters": filters }
+return {
+  "type": "PR_LIST",
+  "filters": filters
+}
+
+
+
+
+
+
+
 app.run(host="0.0.0.0", port=5000)
