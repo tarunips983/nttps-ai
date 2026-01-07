@@ -24,11 +24,13 @@ def is_web_question(q):
     return any(k in q for k in keywords)
 
 def is_db_question(q):
+    words = re.findall(r"\b\w+\b", q.lower())
     keywords = [
         "pr", "estimate", "estimates", "record", "records",
         "cl", "daily", "progress", "pending", "completed", "amount"
     ]
-    return any(k in q for k in keywords)
+    return any(k in words for k in keywords)
+
 
 # =========================================================
 # MATH NORMALIZER
@@ -189,16 +191,18 @@ def analyze():
     if is_date_question(question):
         return jsonify(handle_date_question(question))
 
-    # DATABASE / PR / FILTER
-    if is_db_question(question):
-        return jsonify(detect_db_intent(question))
-
-    # WEB
+  # WEB
     if is_web_question(question):
         return jsonify({
             "type": "WEB",
             "query": question
         })
+    
+    # DATABASE / PR / FILTER
+    if is_db_question(question):
+        return jsonify(detect_db_intent(question))
+
+  
 
     # GENERAL
     return jsonify({
