@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/assets/favicon/favicon.ico">
+  <link rel="apple-touch-icon" href="/assets/favicon/apple-touch-icon.png">
+  <title>Dusky AI — Your AI Assistant</title>
+  <style>
+    /* Existing styles preserved, with enhancements for better responsiveness and new features */
+    body {
+      animation: pageFade .5s ease;
+    }
+    @keyframes pageFade {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .left-bar {
+      animation: sidebarIn .6s cubic-bezier(.22,.61,.36,1);
+    }
+    @keyframes sidebarIn {
+      from { transform: translateX(-30px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    .chat-bubble {
+      animation: bubbleIn .35s cubic-bezier(.22,.61,.36,1);
+    }
+    @keyframes bubbleIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px) scale(.98);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+    .chat-item {
+      transition: all .25s ease;
+    }
+    .chat-item {
+      transition: background .25s ease, box-shadow .25s ease;
+    }
+    .chat-item:hover {
+      background: rgba(255,255,255,0.18);
+      box-shadow: inset 3px 0 0 #2563eb;
+    }
+    .chat-menu-wrap {
+      position: relative;
+      flex-shrink: 0;
+    }
+    .chat-menu {
+      position: absolute;
+      right: 0;
+      top: 32px;
+      z-index: 999;
+    }
+    .composer-inner {
+      transition: all .25s ease;
+    }
+    .composer-inner:focus-within {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 40px rgba(0,0,0,.45);
+    }
+    .ai-header {
+  box-shadow: 0 1px 0 rgba(0,0,0,0.08);
+}
+
+    .smart-avatar {
+      transition: transform .25s ease;
+    }
+    .smart-avatar:hover {
+      transform: scale(1.08);
+    }
+    .bubble-body {
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    .bubble-body:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(0,0,0,.12);
+    }
+    .bubble-body {
+      transition: transform .2s ease, box-shadow .2s ease;
+    }
+    /* ===== LAYOUT MODES ===== */
+    /* ===== COMPOSER BASE ===== */
+    .role-badge.admin {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #111827;
+  color: #fff;
+  letter-spacing: .5px;
+      display: inline-flex;
+}
+
+    .bubble-body:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px rgba(0,0,0,.12);
+    }
+    #upgradeBtn{
+          /* background: #000000; */
+        /* background: #000000; */
+    color: #000000;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+    }
+    #upgradeBtn:hover{
+background: rgba(0, 0, 0, .06);
+      
+
+
+    }
+    /* ===== WELCOME HERO ===== */
+    /*.welcome-hero{
+      position: absolute;
+      top: 42%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      transition: all .6s cubic-bezier(.22,.61,.36,1);
+      pointer-events: none;
+      z-index: 10;
+    }
+    .welcome-title{
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      background: linear-gradient(90deg, #3b82f6, #a855f7, #ec4899);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: 0 0 18px rgba(168,85,247,0.35);
+    }
+    .welcome-sub{
+      font-size: 18px;
+      color: #9ca3af;
+    }*/
+    /* Upgraded with dark mode support using CSS variables */
+    :root {
+      --bg-main: #f3f4f6;
+      --bg-panel: #ffffff;
+      --bg-sidebar: #111827;
+      --bg-input: #e5e7eb;
+      --text-primary: #111827;
+      --text-muted: #6b7280;
+      --user-bubble: #334155;
+      --assistant-bubble: #ffffff;
+      --border: #d1d5db;
+      --accent: #2563eb;
+      --radius: 14px;
+      --shadow: 0 6px 18px rgba(0,0,0,0.06);
+      --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    [data-theme="dark"] {
+      --bg-main: #1f2937;
+      --bg-panel: #111827;
+      --bg-sidebar: #0f172a;
+      --bg-input: #374151;
+      --text-primary: #f3f4f6;
+      --text-muted: #9ca3af;
+      --user-bubble: #4b5563;
+      --assistant-bubble: #1f2937;
+      --border: #374151;
+      --accent: #3b82f6;
+      --shadow: 0 6px 18px rgba(0,0,0,0.2);
+    }
+    body {
+      background: var(--bg-main);
+      color: var(--text-primary);
+    }
+    .left-bar {
+      background: var(--bg-sidebar);
+      color: var(--text-muted);
+    }
+    .right-panel {
+      background: var(--bg-main);
+    }
+    .ai-header {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+    }
+    .composer-inner {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+    }
+    .user-bubble .bubble-body {
+      background: var(--user-bubble);
+    }
+    .assistant-bubble .bubble-body {
+      background: var(--assistant-bubble);
+      border: 1px solid var(--border);
+    }
+    /* Enhanced responsiveness with more breakpoints */
+    @media (max-width: 1200px) {
+      .left-bar {
+        width: 250px;
+      }
+      .welcome-title {
+        font-size: 28px;
+      }
+      .welcome-sub {
+        font-size: 15px;
+      }
+    }
+    @media (max-width: 900px) {
+      .left-bar {
+        width: 280px;
+      }
+      .ai-messages {
+        padding: 15px;
+        padding-bottom: 120px;
+      }
+      .chat-bubble {
+        max-width: 92%;
+      }
+     
+      .composer-inner {
+        padding: 8px;
+        border-radius: 20px;
+      }
+      .welcome-title {
+        font-size: 24px;
+      }
+      .welcome-sub {
+        font-size: 14px;
+      }
+    }
+    @media (max-width: 600px) {
+      .left-bar {
+        width: 100%;
+      }
+      .chat-bubble {
+        max-width: 100%;
+      }
+      .composer-inner {
+        border-radius: 12px;
+      }
+      .ai-header {
+        font-size: 16px;
+        padding: 0 16px;
+      }
+      .welcome-hero {
+        top: 35%;
+      }
+      .welcome-title {
+        font-size: 20px;
+      }
+      .welcome-sub {
+        font-size: 12px;
+      }
+    }
+    /* New Feature: Emoji Picker Styles */
+    .emoji-picker {
+  position: absolute;
+  bottom: 70px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px;
+  display: none;
+  z-index: 200;
+}
+
+    .emoji-picker.active {
+      display: block;
+    }
+    .emoji-picker button {
+      background: none;
+      border: none;
+     
+      cursor: pointer;
+     
+       font-size: 18px;
+  padding: 6px;
+  border-radius: 8px;
+  transition: background .15s ease, transform .1s ease;
+    }
+  
+.emoji-picker button:hover {
+  background: rgba(0,0,0,.08);
+  transform: scale(1.1);
+}
+
+    /* New Feature: Voice Input Indicator */
+    .voice-recording {
+      color: red;
+      font-size: 12px;
+      margin-left: 10px;
+      display: none;
+    }
+    .voice-recording.active {
+      display: inline;
+    }
+    /* New Feature: Export Button in Menu */
+    .menu-option.export {
+      color: #10b981; /* Green for export */
+    }
+    .menu-option.export:hover {
+      background: rgba(16, 185, 129, 0.15);
+    }
+  </style>
+  <link rel="stylesheet" href="css/style_app.css" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body data-theme="light"> <!-- Default theme: light, toggleable -->
+  <div class="bg-animated">
+    <span></span>
+    <span></span>
+    <span></span>
+  </div>
+  <!-- SMART ASSISTANT VIEW -->
+  <div id="smart-assistant-container" class="main-view smart-assistant-view ai-welcome">
+    <div class="smart-auth-bar">
+      <div class="smart-user-menu">
+        <!-- Avatar -->
+        <button id="openSettingsBtn" class="settings-btn" aria-label="Settings">
+    ⚙
+  </button>
+        <div id="smartAvatar" class="smart-avatar">
+          <span id="avatarText">U</span>
+        </div>
+        <!-- Dropdown -->
+        <div id="smartUserDropdown" class="smart-user-dropdown hidden">
+          <div class="smart-user-info">
+             <div id="smartAvatar" class="smart-avatar">
+          <span id="avatarText">U</span>
+        </div>
+            <strong id="smartUserEmail">user@email.com</strong>
+            <span id="planBadge"></span>
+          </div>
+          <button id="upgradeBtn" class="menu-btn">
+  <svg viewBox="0 0 24 24"><path d="M12 3l6 6H6z"/><path d="M12 9v12"/></svg>
+  Upgrade Plan
+</button>
+
+<button id="themeToggleBtn" class="menu-btn">
+  <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 100 18 9 9 0 000-18z"/></svg>
+  Toggle Dark Mode
+</button>
+
+<button id="logoutBtn" class="menu-btn danger">
+  <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+  Logout
+</button>
+
+        </div>
+      </div>
+    </div>
+    <!-- LEFT: CHAT HISTORY -->
+    <aside class="left-bar">
+      <div class="logo-box">
+        <img src="/assets/dusky-hero.png" class="logo-img">
+      </div>
+      <input id="chatSearch" placeholder="Search in chat..." />
+      <button class="new-chat-btn" onclick="createNewChat()" aria-label="New chat">
+    <svg viewBox="0 0 24 24">
+      <path d="M12 5v14M5 12h14"/>
+    </svg>
+    <span>New Chat</span>
+  </button>
+      <div id="chatHistory">
+       <div class="chat-history-header">
+  <span class="chat-title">Conversations</span>
+
+  
+</div>
+
+        <div id="chatHistoryList"></div>
+      </div>
+    </aside>
+    <!-- RIGHT: CHAT PANEL -->
+    <section class="right-panel smart-ai-panel" id="chatLayout">
+      <div class="ai-header">
+        <button id="mobile-menu-btn" class="mobile-menu-btn">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <span>Dusky AI 1.0</span>
+      </div>
+      <div id="mobile-overlay" class="mobile-overlay"></div>
+      <!-- WELCOME HERO -->
+      <div id="welcomeHero" class="welcome-hero">
+        <h1 class="welcome-title">What can I help you with?</h1>
+        <p class="welcome-sub">Ask anything. Analyze documents. Automate your work.</p>
+      </div>
+      <!-- MESSAGES -->
+      <div id="aiMessages" class="ai-messages"></div>
+      <!-- TYPING -->
+      <div id="aiTyping" class="ai-typing" style="display:none">
+        <span></span><span></span><span></span>
+      </div>
+      <!-- INPUT -->
+      <div class="chat-composer">
+        <input type="file" id="chatFile" hidden />
+        <div class="composer-inner">
+          <button id="attachBtn" class="composer-icon" aria-label="Attach file">
+  <svg viewBox="0 0 24 24"><path d="M21.44 11.05l-8.49 8.49a5 5 0 01-7.07-7.07l9.19-9.19a3 3 0 114.24 4.24l-9.19 9.19a1 1 0 01-1.41-1.41l8.49-8.49"/></svg>
+</button>
+<textarea
+  id="aiInput"
+  class="composer-input"
+  placeholder="Message Dusky AI..."
+  rows="1"
+></textarea>
+
+          
+<button id="emojiBtn" class="composer-icon" aria-label="Emoji">
+  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/></svg>
+</button>
+
+<button id="voiceBtn" class="composer-icon" aria-label="Voice input">
+  <svg viewBox="0 0 24 24"><path d="M12 1a3 3 0 013 3v8a3 3 0 01-6 0V4a3 3 0 013-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/></svg>
+</button>
+
+<button id="aiSendBtn" class="composer-send" aria-label="Send">
+  <svg viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4z"/></svg>
+</button>
+
+        </div>
+        <!-- New Feature: Emoji Picker Container -->
+        <div id="emojiPicker" class="emoji-picker">
+          <!-- Emojis will be dynamically added here -->
+        </div>
+      </div>
+    </section>
+  </div>
+<!-- ================= SETTINGS MODAL ================= -->
+<div id="settingsOverlay" class="settings-overlay hidden">
+  <div class="settings-container">
+
+    <!-- LEFT NAV -->
+    <aside class="settings-nav">
+      <h3>Settings</h3>
+      <button class="settings-tab active" data-tab="general">General</button>
+      <button class="settings-tab" data-tab="appearance">Appearance</button>
+      <button class="settings-tab" data-tab="account">Account</button>
+      <button class="settings-tab" data-tab="security">Security</button>
+    </aside>
+
+    <!-- RIGHT CONTENT -->
+    <section class="settings-content">
+
+      <!-- GENERAL -->
+      <div class="settings-panel active" id="settings-general">
+        <h2>General</h2>
+
+        <div class="setting-row">
+          <label>Language</label>
+          <select disabled>
+            <option>Auto detect</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <label>Time format</label>
+          <select id="timeFormat">
+            <option value="12">12 hour</option>
+            <option value="24">24 hour</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- APPEARANCE -->
+      <div class="settings-panel" id="settings-appearance">
+        <h2>Appearance</h2>
+
+        <div class="setting-row">
+          <label>Theme</label>
+          <select id="themeSelect">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+            <option value="system">System</option>
+          </select>
+        </div>
+
+        <div class="setting-row">
+          <label>Accent color</label>
+          <input type="color" id="accentColor" />
+        </div>
+      </div>
+
+      <!-- ACCOUNT -->
+      <div class="settings-panel" id="settings-account">
+        <h2>Account</h2>
+
+        <div class="setting-row">
+          <label>Email</label>
+          <strong id="smartUserEmail">user@email.com</strong>
+          <span id="settingsEmail">—</span>
+        </div>
+
+        <div class="setting-row">
+          <label>Plan</label>
+          <span id="settingsPlan">—</span>
+        </div>
+      </div>
+
+      <!-- SECURITY -->
+      <div class="settings-panel" id="settings-security">
+        <h2>Security</h2>
+
+        <div class="setting-row">
+          <label>Session</label>
+          <button id="forceLogoutBtn" class="danger-btn">Logout all sessions</button>
+        </div>
+      </div>
+
+    </section>
+  </div>
+</div>
+
+  
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const API_BASE = "https://smart-ai-jh7s.onrender.com";
+      const token = localStorage.getItem("token");
+      // Centralized unauthorized handler
+      function handleUnauthorized() {
+        localStorage.clear();
+        window.location.replace("/login?reason=expired");
+      }
+      // No token → let gate handle it
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_BASE}/auth/me`, {
+          headers: {
+            Authorization: "Bearer " + token
+          }
+        });
+        if (res.status === 401 || res.status === 403) {
+          handleUnauthorized();
+          return;
+        }
+        if (!res.ok) {
+          console.warn("Auth check failed");
+          return;
+        }
+        const data = await res.json();
+        // ✅ Correct data access
+        const email = data.user.email;
+        const role = data.user.role;
+        const plan = data.plan;
+        const initials = email.substring(0, 2).toUpperCase();
+        document.getElementById("avatarText").textContent = initials;
+        document.getElementById("smartUserEmail").textContent = email;
+        const planBadge = document.getElementById("planBadge");
+planBadge.innerHTML = ""; // clear previous content
+
+if (role === "admin") {
+  const badge = document.createElement("span");
+  badge.className = "role-badge admin";
+  badge.textContent = "ADMIN";
+  planBadge.appendChild(badge);
+} else {
+  planBadge.textContent = `${plan} PLAN`;
+}
+
+        if (plan === "FREE" && role !== "admin") {
+          const up = document.getElementById("upgradeBtn");
+          up.classList.remove("hidden");
+          up.onclick = () => window.location.href = "/plans";
+        }
+      } catch (err) {
+        console.error("Auth error:", err);
+        handleUnauthorized();
+      }
+      // Dropdown toggle
+      const avatar = document.getElementById("smartAvatar");
+      const dropdown = document.getElementById("smartUserDropdown");
+      avatar.addEventListener("click", (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle("hidden");
+      });
+      document.addEventListener("click", () => {
+        dropdown.classList.add("hidden");
+      });
+      // Logout
+      document.getElementById("logoutBtn").onclick = async () => {
+        try {
+          await fetch(`${API_BASE}/auth/logout`, {
+            method: "POST",
+            headers: {
+              Authorization: "Bearer " + localStorage.getItem("token")
+            }
+          });
+        } catch (err) {
+          console.warn("Logout request failed", err);
+        } finally {
+          localStorage.clear();
+          window.location.replace("/login");
+        }
+      };
+      // Auto-grow textarea
+      const input = document.getElementById("aiInput");
+      input.addEventListener("input", () => {
+        input.style.height = "auto";
+        input.style.height = input.scrollHeight + "px";
+      });
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          document.getElementById("aiSendBtn").click();
+        }
+      });
+
+      // New Feature: Dark Mode Toggle
+      const themeToggle = document.getElementById("themeToggleBtn");
+      themeToggle.onclick = () => {
+        const currentTheme = document.body.getAttribute("data-theme");
+        const newTheme = currentTheme === "dark" ? "light" : "dark";
+        document.body.setAttribute("data-theme", newTheme);
+        themeToggle.textContent = newTheme === "dark" ? "☀️ Toggle Light Mode" : "🌙 Toggle Dark Mode";
+        localStorage.setItem("theme", newTheme);
+      };
+      // Load saved theme
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme) {
+        document.body.setAttribute("data-theme", savedTheme);
+        themeToggle.textContent = savedTheme === "dark" ? "☀️ Toggle Light Mode" : "🌙 Toggle Dark Mode";
+      }
+
+      // New Feature: Emoji Picker
+      const emojiBtn = document.getElementById("emojiBtn");
+      const emojiPicker = document.getElementById("emojiPicker");
+      const emojis = ['😀', '😂', '❤️', '👍', '🔥', '🎉', '🤔', '😎', '🌟', '🚀']; // Example emojis
+      emojis.forEach(emoji => {
+        const btn = document.createElement("button");
+        btn.textContent = emoji;
+        btn.onclick = () => {
+          input.value += emoji;
+          input.focus();
+          emojiPicker.classList.remove("active");
+        };
+        emojiPicker.appendChild(btn);
+      });
+      emojiBtn.onclick = () => {
+        emojiPicker.classList.toggle("active");
+      };
+
+      // New Feature: Voice Input (using Web Speech API)
+      const voiceBtn = document.getElementById("voiceBtn");
+      const voiceRecording = document.querySelector(".voice-recording");
+      if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = 'en-US';
+
+        voiceBtn.onclick = () => {
+          recognition.start();
+          voiceRecording.classList.add("active");
+        };
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          input.value += transcript + " ";
+          input.focus();
+          voiceRecording.classList.remove("active");
+        };
+        recognition.onerror = () => {
+          voiceRecording.classList.remove("active");
+          alert("Voice recognition error. Please try again.");
+        };
+        recognition.onend = () => {
+          voiceRecording.classList.remove("active");
+        };
+      } else {
+        voiceBtn.style.display = "none"; // Hide if not supported
+      }
+
+      // New Feature: Export Chat (added to context menu example, assuming menu exists)
+      // Note: Actual export logic would need backend integration, here it's a placeholder
+      document.addEventListener("click", (e) => {
+        if (e.target.classList.contains("export")) {
+          const chatContent = document.getElementById("aiMessages").innerText;
+          const blob = new Blob([chatContent], { type: "text/plain" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "chat-export.txt";
+          a.click();
+          URL.revokeObjectURL(url);
+        }
+      });
+    });
+  </script>
+  <script src="js/ui-state.js"></script>
+  <script src="js/smart-assistant-core.js"></script>
+  <script>
+(() => {
+  const overlay = document.getElementById("settingsOverlay");
+  const openBtn = document.getElementById("openSettingsBtn");
+
+  openBtn.onclick = () => overlay.classList.remove("hidden");
+  overlay.onclick = e => {
+    if(e.target === overlay) overlay.classList.add("hidden");
+  };
+
+  // Tabs
+  document.querySelectorAll(".settings-tab").forEach(tab => {
+    tab.onclick = () => {
+      document.querySelectorAll(".settings-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".settings-panel").forEach(p => p.classList.remove("active"));
+
+      tab.classList.add("active");
+      document.getElementById("settings-" + tab.dataset.tab).classList.add("active");
+    };
+  });
+
+  // Theme
+  const themeSelect = document.getElementById("themeSelect");
+  themeSelect.value = localStorage.getItem("theme") || "light";
+  themeSelect.onchange = () => {
+    const val = themeSelect.value;
+    if(val === "system"){
+      document.body.removeAttribute("data-theme");
+    } else {
+      document.body.setAttribute("data-theme", val);
+    }
+    localStorage.setItem("theme", val);
+  };
+
+  // Accent
+  const accent = document.getElementById("accentColor");
+  accent.value = localStorage.getItem("accent") || "#2563eb";
+  accent.oninput = () => {
+    document.documentElement.style.setProperty("--accent", accent.value);
+    localStorage.setItem("accent", accent.value);
+  };
+
+  // Account info
+  document.getElementById("settingsEmail").textContent =
+    document.getElementById("smartUserEmail")?.textContent || "—";
+  document.getElementById("settingsPlan").textContent =
+    document.getElementById("planBadge")?.innerText || "—";
+
+  // Force logout
+  document.getElementById("forceLogoutBtn").onclick = () => {
+    localStorage.clear();
+    window.location.replace("/login");
+  };
+})();
+</script>
+
+  <script src="js/smart-assistant-ui.js"></script>
+  <script>
+  document.addEventListener("DOMContentLoaded", () => {
+    if (window.bindSmartAssistantUI) {
+      window.bindSmartAssistantUI();
+    }
+  });
+</script>
+</body>
+</html>
